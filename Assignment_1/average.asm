@@ -2,9 +2,12 @@ extern printf
 extern scanf 
 global average
 
+max_name_size equ 64
+max_title_size equ 64
+
 segment .data
-    name        db  "Please enter your first and last names:", 0
-    title       db  "Please enter your title such as Lieutenant, Chief, Mr, Ms, Influencer, Chairman, Freshman, Foreman, Project Leader, etc:", 0 
+    get_name        db  "Please enter your first and last names:", 0
+    get_title       db  "Please enter your title such as Lieutenant, Chief, Mr, Ms, Influencer, Chairman, Freshman, Foreman, Project Leader, etc:", 0 
     thank       db  "Thank you %s %s ", 0
 
     fulltosan   db  "Enter the number of miles traveled from Fullerton to Santa Ana: ", 0
@@ -34,4 +37,43 @@ segment .bss
 segment .text
 
 average:
+; Back up all the GPRs
+    push    rbp
+    mov     rbp, rsp
+    push    rbx
+    push    rcx
+    push    rdx
+    push    rsi
+    push    rdi
+    push    r8
+    push    r9
+    push    r10
+    push    r11
+    push    r12
+    push    r13
+    push    r14
+    push    r15
+    pushf
     
+
+
+
+exit:
+; Restoring the original value to the GPRs (jmp exit to exit this .asm file)
+    popf
+    pop        r15
+    pop        r14
+    pop        r13
+    pop        r12
+    pop        r11
+    pop        r10
+    pop        r9
+    pop        r8
+    pop        rdi
+    pop        rsi
+    pop        rdx
+    pop        rcx
+    pop        rbx
+    pop        rbp
+
+    ret

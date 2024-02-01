@@ -8,4 +8,5 @@ extern "C" double lasvegas();
 int main() {
     cout << " Welcome to Average Driving Time Calculator maintained by Quan Khong";
     
+    return 0;
 }
