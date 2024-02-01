@@ -6,7 +6,7 @@ using namespace std;
 extern "C" double lasvegas();
 
 int main() {
-    cout << " Welcome to Average Driving Time Calculator maintained by Quan Khong";
+    cout << "Welcome to Average Driving Time Calculator maintained by Quan Khong\n";
     
     return 0;
 }
