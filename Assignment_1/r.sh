@@ -16,10 +16,10 @@ echo "Compile the C++ module driver.cpp"
 g++ -c -m64 -g -Wall -o driver.o driver.cpp -fno-pie -no-pie -std=c++17
 
 echo "Link the two object files already created"
-g++ -m64 -g -o final.out driver.o average.o -fno-pie -no-pie -std=c++17
+g++ -m64 -g -o done.out driver.o average.o -fno-pie -no-pie -std=c++17
 
 echo "Run the program Basic Float Operations"
-./final.out
+./done.out
 
 echo "The bash script file is now closing."
 
