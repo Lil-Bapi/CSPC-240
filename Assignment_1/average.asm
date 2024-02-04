@@ -22,11 +22,11 @@ segment .data
     longtofull      db  "Enter the number of miles traveled from Long Beach to Fullerton: ", 0
     speed3          db  "Enter your average speed during that leg of the trip: ", 0
     
-    proccessed      db  "The inputted data are being processed", 0
+    proccessed      db  "The inputted data are being processed", 10, 0
     
-    totaldistance   db  "The total distance traveled is %lf miles.", 0
-    time            db  "The time of the trip is $lf hours", 0
-    averagespeed    db  "The average speed during this trip is $lf mph.", 0
+    totaldistance   db  "The total distance traveled is %lf miles.", 10, 0
+    time            db  "The time of the trip is $lf hours", 10, 0
+    averagespeed    db  "The average speed during this trip is $lf mph.", 10, 0
 
     string_format   db "%s", 0
     double_format   db "%lf", 0
@@ -210,22 +210,22 @@ average:
 
 
 ; Print total distance
-    mov qword   rax, 0
-    mov         rdi, double_format
-    mov         rsi, xmm12
+    mov qword   rax, 1
+    mov         rdi, totaldistance
+    movsd       xmm0, xmm12
     call        printf
 
-; Print time
-    mov qword   rax, 0
-    mov         rdi, double_format
-    mov         rsi, xmm12 ;<<----- replace this with xmm register that contains the total time
-    call        printf
+; ; Print time
+;     mov qword   rax, 1
+;     mov         rdi, time
+;     movsd       xmm0, xmm12 ;<<----- replace this with xmm register that contains the total time
+;     call        printf
 
-; Print average speed
-    mov qword   rax, 0
-    mov         rdi, double_format
-    mov         rsi, xmm12 ;<<----- replace this with xmm register that contains the average speed
-    call        printf
+; ; Print average speed
+;     mov qword   rax, 1
+;     mov         rdi, averagespeed
+;     movsd       xmm0, xmm12 ;<<----- replace this with xmm register that contains the average speed
+;     call        printf
 
 
 
