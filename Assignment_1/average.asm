@@ -195,17 +195,47 @@ average:
     mov         rsi, proccessed
     call        printf 
 
-; ; Calculation
-;     addsd xmm12, xmm14
-;     addsd xmm12, xmm9
+;xmm12 = fulltosan miles
+;xmm13 = fulltosan speed
+;xmm14 = santolong miles
+;xmm15 = santolong speed
+;xmm9 = longtofull miles
+;xmm10 = longtofull speed
 
-    
+; Calculation
+    addsd xmm12, xmm14
+    addsd xmm12, xmm9       ;total distance
+
+    ;calculate the rest breh had to fix a bug earlier
+
+
+; Print total distance
+    mov qword   rax, 0
+    mov         rdi, double_format
+    mov         rsi, xmm12
+    call        printf
+
+; Print time
+    mov qword   rax, 0
+    mov         rdi, double_format
+    mov         rsi, xmm12 ;<<----- replace this with xmm register that contains the total time
+    call        printf
+
+; Print average speed
+    mov qword   rax, 0
+    mov         rdi, double_format
+    mov         rsi, xmm12 ;<<----- replace this with xmm register that contains the average speed
+    call        printf
+
 
 
 jmp exit
 
 exit:
 ; Restoring the original value to the GPRs (jmp exit to exit this .asm file)
+
+    ;return average speed to main
+    movsd xmm0, xmm12 ;<<----- replace this with xmm register that contains the average speed
     
     popf
     pop        r15
