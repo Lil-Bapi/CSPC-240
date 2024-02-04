@@ -102,6 +102,7 @@ average:
     mov qword rax, 0
     mov rdi, thank
     mov rsi, title
+    mov rdx, name
     call printf
 
 ; Trip one
@@ -194,9 +195,9 @@ average:
     mov         rsi, proccessed
     call        printf 
 
-; Calculation
-    addsd xmm12, xmm14
-    addsd xmm12, xmm9
+; ; Calculation
+;     addsd xmm12, xmm14
+;     addsd xmm12, xmm9
 
     
 
