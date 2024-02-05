@@ -9,6 +9,9 @@ max_name_size equ 64
 max_title_size equ 64
 
 segment .data
+
+    align 16
+
     get_name        db  "Please enter your first and last names:", 0
     get_title       db  "Please enter your title such as Lieutenant, Chief, Mr, Ms, Influencer, Chairman, Freshman, Foreman, Project Leader, etc:", 0 
     thank           db  "Thank you %s %s ", 10, 10, 0
@@ -24,9 +27,9 @@ segment .data
     
     proccessed      db  "The inputted data are being processed", 10, 0
     
-    totaldistance   db  "The total distance traveled is %lf miles.", 10, 0
-    time            db  "The time of the trip is $lf hours", 10, 0
-    averagespeed    db  "The average speed during this trip is $lf mph.", 10, 0
+    totaldistance   db  "The total distance traveled is %.6lf miles.", 10, 0
+    totaltime       db  "The time of the trip is %1.8lf hours", 10, 0
+    averagespeed    db  "The average speed during this trip is %1.8lf mph.", 10, 0
 
     string_format   db "%s", 0
     double_format   db "%lf", 0
@@ -58,6 +61,9 @@ average:
     push    r15
     pushf
 
+    mov rax, 7
+    mov rdi, 0
+    xsave [backup]
 
 ; Ask Name
     mov qword   rax, 0
@@ -173,7 +179,7 @@ average:
     mov         rsi, rsp
     call        scanf
     movsd       xmm8, [rsp]
-    movsd       xmm9, xmm0     ;xmm9 cotain longtofull miles
+    movsd       xmm11, xmm0     ;xmm11 cotain longtofull miles
 
 ; Trip three average
     mov qword   rax, 0
@@ -199,34 +205,48 @@ average:
 ;xmm13 = fulltosan speed
 ;xmm14 = santolong miles
 ;xmm15 = santolong speed
-;xmm9 = longtofull miles
+;xmm11 = longtofull miles
 ;xmm10 = longtofull speed
 
 ; Calculation
-    addsd xmm12, xmm14
-    addsd xmm12, xmm9       ;total distance
+    movsd xmm0, xmm12    
+    addsd xmm0, xmm14    
+    addsd xmm0, xmm11 
 
-    ;calculate the rest breh had to fix a bug earlier
-
+    movsd [rsp], xmm0
 
 ; Print total distance
     mov qword   rax, 1
     mov         rdi, totaldistance
-    movsd       xmm0, xmm12
+    movsd       xmm0, [rsp]
     call        printf
 
-; ; Print time
-;     mov qword   rax, 1
-;     mov         rdi, time
-;     movsd       xmm0, xmm12 ;<<----- replace this with xmm register that contains the total time
-;     call        printf
 
-; ; Print average speed
-;     mov qword   rax, 1
-;     mov         rdi, averagespeed
-;     movsd       xmm0, xmm12 ;<<----- replace this with xmm register that contains the average speed
-;     call        printf
+; Calculation
+    divsd xmm11, xmm10    
+    divsd xmm12, xmm13  
+    divsd xmm14, xmm15
+    
+    addsd xmm11, xmm12
+    addsd xmm11, xmm14        ;total time
 
+    
+; Print total time
+    ; mov qword   rax, 1
+    mov         rdi, totaltime
+    movsd       xmm0, xmm11
+    call        printf
+
+    movsd   xmm0, [rsp]
+; Calculation 
+    divsd   xmm0, xmm11
+    movsd   [rsp], xmm0
+
+; Print average speed
+    mov qword   rax, 1
+    mov         rdi, averagespeed
+    movsd       xmm0, [rsp]
+    call        printf
 
 
 jmp exit
@@ -235,8 +255,14 @@ exit:
 ; Restoring the original value to the GPRs (jmp exit to exit this .asm file)
 
     ;return average speed to main
-    movsd xmm0, xmm12 ;<<----- replace this with xmm register that contains the average speed
+    ; movsd xmm0, xmm12 ;<<----- replace this with xmm register that contains the average speed
     
+    ;State component restore
+    mov rax, 7
+    mov rdx, 0
+    xrstor [backup]
+    movsd xmm0, [rsp]
+
     popf
     pop        r15
     pop        r14
