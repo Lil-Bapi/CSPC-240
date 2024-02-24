@@ -19,18 +19,14 @@
 
 ; Author: Quan Khong
 ; Date: 02/22/2024
-segment .data
-
-segment .bss
-
-segment .text
 
 extern printf       
 extern scanf 
 extern fgets
 extern stdin
 extern strlen
-global average
+extern isfloat
+global triangle
 
 max_name_size equ 64
 max_title_size equ 64
@@ -39,9 +35,9 @@ segment .data
 
     align 16
     get_name    db "Please enter your name: ", 0
-    get_title   db "Please enter your title (Sargent, Chief, CEO, President, Teacher, etc)", 0
+    get_title   db "Please enter your title (Sargent, Chief, CEO, President, Teacher, etc): ", 0
     
-    goodmorning db "Good morning, %s %s. We take care of all your triangles", 0
+    goodmorning db "Good morning, %s %s. We take care of all your triangles", 10, 0
 
     get_side1   db "Please enter the length of the first side: ", 0
     get_side2   db "Please enter the length of the second side: ", 0
@@ -56,3 +52,181 @@ segment .data
 
     farewell    db "Have a good day %s.", 0
 
+    string_format   db "%s", 0
+    double_format   db "%lf", 0
+
+segment .bss
+    align 64
+    backup resb 900
+    name resb max_name_size
+    title resb max_title_size
+
+segment .text
+
+triangle:
+; Back up all the GPRs
+    push    rbp
+    mov     rbp, rsp
+    push    rbx
+    push    rcx
+    push    rdx
+    push    rsi
+    push    rdi
+    push    r8
+    push    r9
+    push    r10
+    push    r11
+    push    r12
+    push    r13
+    push    r14
+    push    r15
+    pushf
+
+    mov rax, 7
+    mov rdi, 0
+    xsave [backup]
+
+; Ask Name
+    mov qword   rax, 0
+    mov         rdi, string_format
+    mov         rsi, get_name
+    call        printf 
+
+
+; Obtain name
+    mov qword rax, 0
+    mov rdi, name
+    mov rsi, max_name_size
+    mov rdx, [stdin]
+    call fgets
+
+; compute the length of the name and remove the newline
+    mov qword rax, 0
+    mov rdi, name
+    call strlen
+    mov byte [name + rax - 1],byte 0
+
+; Ask title
+    mov qword   rax, 0
+    mov         rdi, string_format
+    mov         rsi, get_title
+    call        printf 
+
+; Obtain title
+    mov qword rax, 0
+    mov rdi, title
+    mov rsi, max_title_size
+    mov rdx, [stdin]
+    call fgets
+
+; compute the length of the name and remove the newline
+    mov qword rax, 0
+    mov rdi, title
+    call strlen
+    mov byte [title + rax - 1],byte 0
+
+;print thank message
+    mov qword rax, 0
+    mov rdi, goodmorning
+    mov rsi, title
+    mov rdx, name
+    call printf
+
+
+; Ask for the length of the first side`
+    mov qword   rax, 0
+    mov         rdi, string_format
+    mov         rsi, get_side1
+    call        printf
+
+; Obtain the length of the first side
+    mov qword rax, 0
+    mov rdi, double_format
+    mov rsi, rsp
+    call scanf
+    movsd xmm8, [rsp]
+    movsd xmm12, xmm0   ;xmm12 contain the length of the first side
+
+; Ask for the length of the second side
+    mov qword   rax, 0
+    mov         rdi, string_format
+    mov         rsi, get_side2
+    call        printf
+
+; Obtain the length of the second side
+    mov qword rax, 0
+    mov rdi, double_format
+    mov rsi, rsp
+    call scanf
+    movsd xmm8, [rsp]
+    movsd xmm13, xmm0   ;xmm13 contain the length of the second side
+
+; Ask for the angle of the two sides
+    mov qword   rax, 0
+    mov         rdi, string_format
+    mov         rsi, get_angle
+    call        printf
+
+; Obtain the angle of the two sides
+    mov qword rax, 0
+    mov rdi, double_format
+    mov rsi, rsp
+    call scanf
+    movsd xmm8, [rsp]
+    movsd xmm14, xmm0   ;xmm14 contain the size of the angle
+
+; ; Compute the length of the third side
+;     mov rax, 0
+;     mov rdi, thankyou
+;     mov rsi, name
+;     movsd xmm0, xmm12
+;     movsd xmm1, xmm13
+;     movsd xmm2, xmm14
+;     call triangle_length
+;     movsd xmm15, xmm0
+
+; Print the thank you message
+    mov rax, 3
+    mov rdi, thankyou
+    mov rsi, name
+    movsd xmm0, xmm12
+    movsd xmm1, xmm13
+    movsd xmm2, xmm14
+    call printf
+
+; ; Print the length of the third side    
+;     mov rax, 0
+;     mov rdi, third_side
+;     movsd xmm0, xmm15
+;     call printf
+jmp exit
+
+exit:
+; Restoring the original value to the GPRs (jmp exit to exit this .asm file)
+
+    ;return average speed to main
+    ; movsd xmm0, xmm12 ;<<----- replace this with xmm register that contains the average speed
+    
+    ;State component restore
+    mov rax, 7
+    mov rdx, 0
+    xrstor [backup]
+    movsd xmm0, [rsp]
+
+    popf
+    pop        r15
+    pop        r14
+    pop        r13
+    pop        r12
+    pop        r11
+    pop        r10
+    pop        r9
+    pop        r8
+    pop        rdi
+    pop        rsi
+    pop        rdx
+    pop        rcx
+    pop        rbx
+    pop        rbp
+
+    ret
