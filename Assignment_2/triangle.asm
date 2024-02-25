@@ -2,7 +2,7 @@
 ; of a triangle and inputs the size of the angle between those two sides.   The 
 ; length of the third side is computed.  The three input values are validated by 
 ; suitable checking mechanism. 
-; Copyright (C) <2023>  <Andy Nguyen>
+; Copyright (C) <2024>  <Quan Khong>
 
 ; "Amazing Triangle" is free software: you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
