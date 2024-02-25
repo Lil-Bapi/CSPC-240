@@ -26,6 +26,8 @@ extern fgets
 extern stdin
 extern strlen
 extern isfloat
+extern cos
+extern sqrt
 global triangle
 
 max_name_size equ 64
@@ -52,14 +54,18 @@ segment .data
 
     farewell    db "Have a good day %s.", 0
 
+    pi         dq 3.141
+    radians    dq 180.0
     string_format   db "%s", 0
-    double_format   db "%lf", 0
+    format_float   db "%lf", 0
 
 segment .bss
     align 64
     backup resb 900
     name resb max_name_size
     title resb max_title_size
+    angle resq 100
+    
 
 segment .text
 
@@ -141,7 +147,7 @@ triangle:
 
 ; Obtain the length of the first side
     mov qword rax, 0
-    mov rdi, double_format
+    mov rdi, format_float
     mov rsi, rsp
     call scanf
     movsd xmm8, [rsp]
@@ -155,7 +161,7 @@ triangle:
 
 ; Obtain the length of the second side
     mov qword rax, 0
-    mov rdi, double_format
+    mov rdi, format_float
     mov rsi, rsp
     call scanf
     movsd xmm8, [rsp]
@@ -169,11 +175,11 @@ triangle:
 
 ; Obtain the angle of the two sides
     mov qword rax, 0
-    mov rdi, double_format
+    mov rdi, format_float
     mov rsi, rsp
     call scanf
     movsd xmm8, [rsp]
-    movsd xmm14, xmm0   ;xmm14 contain the size of the angle
+    movsd [angle], xmm0   ;[angle] contain the size of the angle
 
 ; Print the thank you message
     mov rax, 3
@@ -181,10 +187,8 @@ triangle:
     mov rsi, name
     movsd xmm0, xmm12
     movsd xmm1, xmm13
-    movsd xmm2, xmm14
+    movsd xmm2, [angle]
     call printf
-
-    movsd   xmm0, [rsp]
 
 ; Compute the length of the third side: C = sqrt(A^2 + B^2 - 2ABcos(C))
     movsd xmm9, xmm12
@@ -195,21 +199,28 @@ triangle:
 
     addsd xmm9, xmm10   ; A^2 + B^2
 
-    movsd xmm11, xmm14
-    ; rcpps xmm11, xmm11  ; cos(C)
+    movsd xmm11, [angle]
+    divsd xmm11, [radians]  ; Convert the angle from degrees to radians
+    mulsd xmm11, [pi]       ; Multiply the angle by pi
+    movsd xmm0, xmm11
+    call cos
+    movsd xmm11, xmm0       ; cos(C)
 
-    ; mulsd xmm11, xmm12  ; Times A
-    ; mulsd xmm11, xmm13  ; Times B
-    ; addsd xmm11, xmm11  ; 2ABcos(C)
+    mulsd xmm11, xmm12  ; Times A
+    mulsd xmm11, xmm13  ; Times B
+    addsd xmm11, xmm11  ; 2ABcos(C)
 
     subsd xmm9, xmm11   ; A^2 + B^2 - 2ABcos(C)
-    ; sqrtps xmm9, xmm9   ; sqrt(A^2 + B^2 - 2ABcos(C))
+    movsd xmm0, xmm9
+    call sqrt
+    movsd xmm9, xmm0    ; The length of the third side
 
 ; Print the length of the third side
     mov rax, 3               ; printf syscall number
     mov rdi, third_side      ; format string
-    movsd xmm0, xmm11         ; xmm9 contains the length of the third side
+    movsd xmm0, xmm9         ; xmm9 contains the length of the third side
     call printf
+    movsd [rsp], xmm9
 
 
 jmp exit
