@@ -291,12 +291,16 @@ jmp exit
 exit:
 ; Restoring the original value to the GPRs (jmp exit to exit this .asm file)
 
+    push qword 0
+    movsd [rsp], xmm9
 
     ;State component restore
     mov rax, 7
     mov rdx, 0
     xrstor [backup]
-    movsd xmm0, xmm9
+
+    movsd xmm0, [rsp]
+    pop rax
 
     popf
     pop        r15
