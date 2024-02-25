@@ -28,7 +28,11 @@ extern strlen
 extern isfloat
 extern cos
 extern sqrt
+extern atof
 global triangle
+
+true equ -1
+false equ 0
 
 max_name_size equ 64
 max_title_size equ 64
@@ -44,7 +48,7 @@ segment .data
     get_side1   db "Please enter the length of the first side: ", 0
     get_side2   db "Please enter the length of the second side: ", 0
     get_angle   db "Please enter the size of the angle in degrees: ", 0
-    invalid     db "Invalid input. try again:", 0
+    invalid_in  db "Invalid input. try again: ", 0
 
     thankyou    db "Thank you %s. You entered %1.6lf %1.6lf and %1.6lf", 10, 0
     third_side  db "The length of the third side is %1.6lf", 0
@@ -62,9 +66,12 @@ segment .data
 segment .bss
     align 64
     backup resb 900
+    max_buffer_size equ 64
     name resb max_name_size
     title resb max_title_size
-    angle resq 100
+    angle resq 60
+    side1 resq 60
+    side2 resq 60
     
 
 segment .text
@@ -141,53 +148,109 @@ triangle:
 
 ; Ask for the length of the first side`
     mov qword   rax, 0
-    mov         rdi, string_format
-    mov         rsi, get_side1
+    mov         rdi, get_side1
     call        printf
 
+triangle_side1:
 ; Obtain the length of the first side
+    mov rax, 0
+    mov rdi, side1
+    mov rsi, 60
+    mov rdx, [stdin]
+    call fgets
+
+; Remove the newline
     mov qword rax, 0
-    mov rdi, format_float
-    mov rsi, rsp
-    call scanf
-    movsd xmm8, [rsp]
-    movsd xmm12, xmm0   ;xmm12 contain the length of the first side
+    mov rdi, side1
+    call strlen
+    mov byte [side1 + rax - 1],byte 0
+
+
+; Convert the string to a double precision floating-point number\
+    mov rax, 0
+    mov rdi, side1   ; Pass the address
+    call atof      ; Convert string to double
+    movsd xmm12, xmm0   ;[side1] contain the size of the first side
+
+; Check if valid input
+    mov rax, 0
+    mov rdi, side1
+    call isfloat
+    cmp rax, false
+    je invalid_side1
 
 ; Ask for the length of the second side
     mov qword   rax, 0
-    mov         rdi, string_format
-    mov         rsi, get_side2
+    mov         rdi, get_side2
     call        printf
 
+triangle_side2:
 ; Obtain the length of the second side
-    mov qword rax, 0
-    mov rdi, format_float
-    mov rsi, rsp
-    call scanf
-    movsd xmm8, [rsp]
-    movsd xmm13, xmm0   ;xmm13 contain the length of the second side
+    mov rax, 0
+    mov rdi, side2
+    mov rsi, 60
+    mov rdx, [stdin]
+    call fgets
 
-; Ask for the angle of the two sides
+; Remove the newline
+    mov qword rax, 0
+    mov rdi, side2
+    call strlen
+    mov byte [side2 + rax - 1],byte 0
+
+; Convert the string to a double precision floating-point number
+    mov rax, 0
+    mov rdi, side2   ; Pass the address
+    call atof      ; Convert string to double
+    movsd xmm13, xmm0   ;[side2] contain the size of the second side
+
+; Check if valid input
+    mov rax, 0
+    mov rdi, side2
+    call isfloat
+    cmp rax, false
+    je invalid_side2
+
+; Ask for the size of the angle
     mov qword   rax, 0
-    mov         rdi, string_format
-    mov         rsi, get_angle
+    mov         rdi, get_angle
     call        printf
 
-; Obtain the angle of the two sides
+triangle_angle:
+; Obtain the size of the angle
+    mov rax, 0
+    mov rdi, angle
+    mov rsi, 60
+    mov rdx, [stdin]
+    call fgets
+
+; Remove the newline
     mov qword rax, 0
-    mov rdi, format_float
-    mov rsi, rsp
-    call scanf
-    movsd xmm8, [rsp]
-    movsd [angle], xmm0   ;[angle] contain the size of the angle
+    mov rdi, angle
+    call strlen
+    mov byte [angle + rax - 1],byte 0
+    
+
+; Convert the string to a double precision floating-point number
+    mov rax, 0
+    mov rdi, angle   ; Pass the address
+    call atof      ; Convert string to double
+    movsd xmm14, xmm0   ;xmm14 contain the size of the angle
+
+; Check if valid input
+    mov rax, 0
+    mov rdi, angle
+    call isfloat
+    cmp rax, false
+    je invalid_angle
 
 ; Print the thank you message
     mov rax, 3
     mov rdi, thankyou
     mov rsi, name
-    movsd xmm0, xmm12
-    movsd xmm1, xmm13
-    movsd xmm2, [angle]
+    movsd xmm0, xmm12  ;[side1] contain the size of the first side
+    movsd xmm1, xmm13  ;[side2] contain the size of the second side
+    movsd xmm2, xmm14  ;xmm14 contain the size of the angle
     call printf
 
 ; Compute the length of the third side: C = sqrt(A^2 + B^2 - 2ABcos(C))
@@ -199,7 +262,7 @@ triangle:
 
     addsd xmm9, xmm10   ; A^2 + B^2
 
-    movsd xmm11, [angle]
+    movsd xmm11, xmm14
     divsd xmm11, [radians]  ; Convert the angle from degrees to radians
     mulsd xmm11, [pi]       ; Multiply the angle by pi
     movsd xmm0, xmm11
@@ -220,22 +283,20 @@ triangle:
     mov rdi, third_side      ; format string
     movsd xmm0, xmm9         ; xmm9 contains the length of the third side
     call printf
-    movsd [rsp], xmm9
 
 
 jmp exit
+    
 
 exit:
 ; Restoring the original value to the GPRs (jmp exit to exit this .asm file)
 
-    ;return average speed to main
-    ; movsd xmm0, xmm12 ;<<----- replace this with xmm register that contains the average speed
-    
+
     ;State component restore
     mov rax, 7
     mov rdx, 0
     xrstor [backup]
-    movsd xmm0, [rsp]
+    movsd xmm0, xmm9
 
     popf
     pop        r15
@@ -254,3 +315,24 @@ exit:
     pop        rbp
 
     ret
+
+invalid_side1:
+    mov rax, 0
+    mov rdi, string_format
+    mov rsi, invalid_in
+    call printf
+    jmp triangle_side1
+
+invalid_side2:
+    mov rax, 0
+    mov rdi, string_format
+    mov rsi, invalid_in
+    call printf
+    jmp triangle_side2
+
+invalid_angle:
+    mov rax, 0
+    mov rdi, string_format
+    mov rsi, invalid_in
+    call printf
+    jmp triangle_angle
