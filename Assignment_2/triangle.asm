@@ -44,7 +44,7 @@ segment .data
     get_angle   db "Please enter the size of the angle in degrees: ", 0
     invalid     db "Invalid input. try again:", 0
 
-    thankyou    db "Thank you %s. You entered %1.6lf %1.6lf and %1.6lf", 0
+    thankyou    db "Thank you %s. You entered %1.6lf %1.6lf and %1.6lf", 10, 0
     third_side  db "The length of the third side is %1.6lf", 0
 
     progress    db "The length will be sent to the driver program.", 0
@@ -175,16 +175,6 @@ triangle:
     movsd xmm8, [rsp]
     movsd xmm14, xmm0   ;xmm14 contain the size of the angle
 
-; ; Compute the length of the third side
-;     mov rax, 0
-;     mov rdi, thankyou
-;     mov rsi, name
-;     movsd xmm0, xmm12
-;     movsd xmm1, xmm13
-;     movsd xmm2, xmm14
-;     call triangle_length
-;     movsd xmm15, xmm0
-
 ; Print the thank you message
     mov rax, 3
     mov rdi, thankyou
@@ -194,11 +184,34 @@ triangle:
     movsd xmm2, xmm14
     call printf
 
-; ; Print the length of the third side    
-;     mov rax, 0
-;     mov rdi, third_side
-;     movsd xmm0, xmm15
-;     call printf
+    movsd   xmm0, [rsp]
+
+; Compute the length of the third side: C = sqrt(A^2 + B^2 - 2ABcos(C))
+    movsd xmm9, xmm12
+    mulsd xmm9, xmm9    ; A^2
+
+    movsd xmm10, xmm13
+    mulsd xmm10, xmm10  ; B^2
+
+    addsd xmm9, xmm10   ; A^2 + B^2
+
+    movsd xmm11, xmm14
+    ; rcpps xmm11, xmm11  ; cos(C)
+
+    ; mulsd xmm11, xmm12  ; Times A
+    ; mulsd xmm11, xmm13  ; Times B
+    ; addsd xmm11, xmm11  ; 2ABcos(C)
+
+    subsd xmm9, xmm11   ; A^2 + B^2 - 2ABcos(C)
+    ; sqrtps xmm9, xmm9   ; sqrt(A^2 + B^2 - 2ABcos(C))
+
+; Print the length of the third side
+    mov rax, 3               ; printf syscall number
+    mov rdi, third_side      ; format string
+    movsd xmm0, xmm11         ; xmm9 contains the length of the third side
+    call printf
+
+
 jmp exit
 
 exit:
