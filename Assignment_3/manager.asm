@@ -20,6 +20,8 @@
 ; Author: Quan Khong
 ; Date: 02/22/2024
 
+array_size equ 100
+
 extern printf       
 extern scanf 
 extern fgets
@@ -38,8 +40,15 @@ segment .data
 
     outputting_array db "These numbers were received and placed into an array",10, 0
 
-    mean db "The mean of the numbers in the array is "    
-    
+    mean db "The mean of the numbers in the array is %1.6lf"    
+
+    string_format   db "%s", 0
+    format_float   db "%lf", 0
+
+    segment .bss
+    align 64
+    backup resb 900
+    max_buffer_size equ 64
 
 segment .text
 
@@ -62,8 +71,45 @@ manager:
     push    r15
     pushf
 
+; Print message1
+    mov qword   rax, 0
+    mov         rdi, string_format
+    mov         rsi, message1
+    call        printf 
 
+; Print message2
+    mov qword   rax, 0
+    mov         rdi, string_format
+    mov         rsi, message2
+    call        printf 
 
+; Print message3
+    mov qword   rax, 0
+    mov         rdi, string_format
+    mov         rsi, message3
+    call        printf 
+
+; Input the array using the external assembly function from module input_array.asm
+    mov rax, 0
+    mov rdi, array
+    mov rsi, array_size
+    call input_array
+    mov r13, rax
+
+; Print message6
+    mov rax, 0
+    mov rsi, string_format
+    mov rdi, message6
+    call printf
+
+ ; Print the elements of the array using the external assembly function from module output_array.asm
+    mov rax, 0
+    mov rdi, array
+    mov rsi, r13
+    call output_array
+
+;Print mean
+    
 jmp exit
     
 

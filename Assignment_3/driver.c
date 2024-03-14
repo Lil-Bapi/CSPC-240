@@ -35,6 +35,7 @@ int main() {
     for (int i = 0; i < size; ++i) {
         printf("%.3lf\n", *(arr[i]));
     }
-    printf("Main will keep these and send a zero to the operating system.\n");
+    
+    printf("Main will return 0 to the operating system. Bye.\n");
     return 0;
 }
