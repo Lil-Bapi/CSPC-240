@@ -20,18 +20,21 @@
 // Author: Quan Khong
 // Date: 02/22/2024
 
-#include <stdio.h>
-#include <iostream>
+#include "stdio.h"
 
-using namespace std;
-
-extern "C" double triangle();
+extern double ** director(unsigned long *n);
 
 int main() {
-    
-    cout << "Welcome to Amazing Triangles programmed by Quan Khong on February 20, 2024\n";
-    double result = triangle();
-    
-    cout << "\nThe driver recieved this number " << result << " and will simply keep it.\n";
-    cout << "A zero will be returned to the operating system.  Bye.\n";
+   
+    printf("Welcome to Arrays of floating point numbers.\n");
+    printf("Bought to you by Quan Khong\n\n");
+
+    unsigned long size = 0;
+    double **arr = director(&size);
+    printf("The main function received this set of numbers:\n");
+    for (int i = 0; i < size; ++i) {
+        printf("%.3lf\n", *(arr[i]));
+    }
+    printf("Main will keep these and send a zero to the operating system.\n");
+    return 0;
 }
