@@ -28,15 +28,15 @@ extern fgets
 extern stdin
 extern strlen
 extern isfloat
-extern cos
-extern sqrt
 extern atof
-global triangle
+extern input_array
+extern output_array
+global manager
 
 segment .data
-    message1 db "This program will manage your arrays of 64-bit floats", 0
-    message2 db "For the array enter a sequence of 64-bit floats separated by white space."
-    message3 db "After the last input press enter followed by Control+D:"
+    message1 db "This program will manage your arrays of 64-bit floats", 10, 0
+    message2 db "For the array enter a sequence of 64-bit floats separated by white space.", 10, 0
+    message3 db "After the last input press enter followed by Control+D:", 10, 0
 
     outputting_array db "These numbers were received and placed into an array",10, 0
 
@@ -45,10 +45,11 @@ segment .data
     string_format   db "%s", 0
     format_float   db "%lf", 0
 
-    segment .bss
+segment .bss
     align 64
     backup resb 900
     max_buffer_size equ 64
+    array resq array_size
 
 segment .text
 
@@ -70,6 +71,10 @@ manager:
     push    r14
     push    r15
     pushf
+
+    mov rax, 7
+    mov rdi, 0
+    xsave [backup]
 
 ; Print message1
     mov qword   rax, 0
@@ -96,17 +101,23 @@ manager:
     call input_array
     mov r13, rax
 
-; Print message6
+; Print array message
     mov rax, 0
     mov rsi, string_format
-    mov rdi, message6
+    mov rdi, outputting_array
     call printf
 
- ; Print the elements of the array using the external assembly function from module output_array.asm
+; Print the elements of the array using the external assembly function from module output_array.asm
     mov rax, 0
     mov rdi, array
     mov rsi, r13
     call output_array
+
+; Print message3
+    mov qword   rax, 0
+    mov         rdi, format_float
+    mov         rsi, array_size
+    call        printf 
 
 ;Print mean
     

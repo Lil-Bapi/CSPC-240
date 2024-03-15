@@ -22,7 +22,7 @@
 
 #include "stdio.h"
 
-extern double ** director(unsigned long *n);
+extern double ** manager(unsigned long *n);
 
 int main() {
    
@@ -30,8 +30,8 @@ int main() {
     printf("Bought to you by Quan Khong\n\n");
 
     unsigned long size = 0;
-    double **arr = director(&size);
-    printf("The main function received this set of numbers:\n");
+    double **arr = manager(&size);
+    printf("\nThe main function received this set of numbers:\n");
     for (int i = 0; i < size; ++i) {
         printf("%.3lf\n", *(arr[i]));
     }
