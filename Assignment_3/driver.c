@@ -22,20 +22,15 @@
 
 #include "stdio.h"
 
-extern double ** manager(unsigned long *n);
+extern double manager();
 
 int main() {
    
     printf("Welcome to Arrays of floating point numbers.\n");
     printf("Bought to you by Quan Khong\n\n");
 
-    unsigned long size = 0;
-    double **arr = manager(&size);
-    printf("\nThe main function received this set of numbers:\n");
-    for (int i = 0; i < size; ++i) {
-        printf("%.3lf\n", *(arr[i]));
-    }
-    
+    double answer = manager();
+    printf("\nMain recieved %1.18lf, and will keep it for future use.\n", answer);
     printf("Main will return 0 to the operating system. Bye.\n");
     return 0;
 }

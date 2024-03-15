@@ -1,4 +1,5 @@
 global compute_mean
+extern printf
 
 segment .data
     floatform db "%lf", 0
@@ -32,18 +33,39 @@ compute_mean:
     mov rdi, 0
     xsave [backup]
 
-    mov r14, rdi       ; Load the address of the array into r14
-    mov cl, [r14]      ; Load the first element of the array into cl
-    add r14, 1         ; Move to the second element
+    mov r13, rdi       ; Load the address of the array into r14
+    mov r14, rsi       ; Load the size of the array into r15
+    pxor xmm10, xmm10  ; Set xmm10 to 0
 
-rotate_loop:
-    mov dl, [r14]       ; Load the current element into dl
-    mov [r14 - 1], dl   ; Move it one position to the left
-    inc r14             ; Move to the next element
-    loop rotate_loop
+    mov r15, 0         ; r15 is counter for the loop
 
-    mov [r14 - 1], cl   ; Move the first element to the end
+sum_loop:
+    cmp r15, r14       ; Check if we have reached the end of the array
+    je exit
 
+    ; Add the current element to xmm10 (xmm10 is the sum of all the elements)
+    addsd xmm10, [r13+r15*8] ; r13 is the address of the array, r15 is the counter
+
+    inc r15             ; Move to the next element
+    jmp sum_loop
+
+    
+    ; ; Calculate the mean
+    ; movq xmm11, r14
+    ; divsd xmm10, xmm11
+    ; movsd [rsp], xmm10
+
+    ;move xmm10 to a printable register using printf
+    
+
+    movsd [rsp], xmm10
+
+
+    ; ; Display sum for debugging purposes
+    ; mov rax, 1
+    ; mov rdi, floatform
+    ; mov rsi, [rsp]
+    ; call printf
 
 exit:
 ; Restoring the original value to the GPRs (jmp exit to exit this .asm file)

@@ -31,6 +31,7 @@ extern isfloat
 extern atof
 extern input_array
 extern output_array
+extern compute_mean
 global manager
 
 segment .data
@@ -38,7 +39,7 @@ segment .data
     message2 db "For the array enter a sequence of 64-bit floats separated by white space.", 10, 0
     message3 db "After the last input press enter followed by Control+D:", 10, 0
 
-    outputting_array db "These numbers were received and placed into an array",10, 0
+    outputting_array db 10, "These numbers were received and placed into an array",10, 0
 
     mean db "The mean of the numbers in the array is %1.6lf"    
 
@@ -113,11 +114,12 @@ manager:
     mov rsi, r13
     call output_array
 
-; Print message3
-    mov qword   rax, 0
-    mov         rdi, format_float
-    mov         rsi, array_size
-    call        printf 
+; ; Calculate the mean of the array
+;     mov rax, 0
+;     mov rdi, array
+;     mov rsi, r13
+;     call compute_mean
+;     mov [rsp], rax
 
 ;Print mean
     
