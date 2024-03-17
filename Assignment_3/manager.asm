@@ -20,6 +20,7 @@
 ; Author: Quan Khong
 ; Date: 02/22/2024
 
+
 array_size equ 100
 
 extern printf       
@@ -35,16 +36,17 @@ extern compute_mean
 global manager
 
 segment .data
+    string_format   db "%s", 0
+    format_float   db "%lf", 0
     message1 db "This program will manage your arrays of 64-bit floats", 10, 0
     message2 db "For the array enter a sequence of 64-bit floats separated by white space.", 10, 0
     message3 db "After the last input press enter followed by Control+D:", 10, 0
 
     outputting_array db 10, "These numbers were received and placed into an array",10, 0
 
-    mean db "The mean of the numbers in the array is %1.6lf"    
+    mean_message db 10, "The variance of the inputted numbers is %1.18lf", 10, 0 
 
-    string_format   db "%s", 0
-    format_float   db "%lf", 0
+    array_max db 100, 0
 
 segment .bss
     align 64
@@ -77,6 +79,10 @@ manager:
     mov rdi, 0
     xsave [backup]
 
+; Initialize Parameters
+    mov qword r14, 0
+    mov qword r13, 0
+
 ; Print message1
     mov qword   rax, 0
     mov         rdi, string_format
@@ -96,33 +102,39 @@ manager:
     call        printf 
 
 ; Input the array using the external assembly function from module input_array.asm
-    mov rax, 0
+    mov qword rax, 0
     mov rdi, array
-    mov rsi, array_size
+    mov rsi, array_max
     call input_array
     mov r13, rax
 
 ; Print array message
-    mov rax, 0
+    mov qword rax, 0
     mov rsi, string_format
     mov rdi, outputting_array
     call printf
 
 ; Print the elements of the array using the external assembly function from module output_array.asm
-    mov rax, 0
+    mov qword rax, 0
     mov rdi, array
     mov rsi, r13
     call output_array
 
-; ; Calculate the mean of the array
-;     mov rax, 0
-;     mov rdi, array
-;     mov rsi, r13
-;     call compute_mean
-;     mov [rsp], rax
-
-;Print mean
+; Calculate the mean of the array
+    mov qword rax, 0
+    mov rdi, array
+    mov rsi, r13
+    call compute_mean
     
+; move the result to a safe register
+    movsd xmm9, xmm0
+
+; Print the mean
+    mov rax, 1
+    mov rdi, mean_message
+    movsd xmm0, xmm9
+    call printf
+
 jmp exit
     
 

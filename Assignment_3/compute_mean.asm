@@ -1,17 +1,11 @@
 global compute_mean
-extern printf
 
 segment .data
-    floatform db "%lf", 0
-
-segment .bss
-    align 64
-    backup resb 900
 
 segment .text
 
 compute_mean:
-; Back up all the GPRs
+    ; Back up all the GPRs
     push    rbp
     mov     rbp, rsp
     push    rbx
@@ -29,69 +23,51 @@ compute_mean:
     push    r15
     pushf
 
-    mov rax, 7
-    mov rdi, 0
-    xsave [backup]
+    ;Registers rax, rip, and rsp are usually not backed up.
 
-    mov r13, rdi       ; Load the address of the array into r14
-    mov r14, rsi       ; Load the size of the array into r15
-    pxor xmm10, xmm10  ; Set xmm10 to 0
+    ;Back up the incoming parameter
+    mov     r14, rdi  ;r14 is the array
+    mov     r15, rsi  ;r15 is the count of valid numbers in the array
 
-    mov r15, 0         ; r15 is counter for the loop
+    ;Block to create a loop
+    xor     r13, r13   ;r13 is the loop counter
 
-sum_loop:
-    cmp r15, r14       ; Check if we have reached the end of the array
-    je exit
+begin_loop:
+    ; Check if we are done with the loop or not
+    cmp     r13, r15
+    jge     calculate_mean
 
-    ; Add the current element to xmm10 (xmm10 is the sum of all the elements)
-    addsd xmm10, [r13+r15*8] ; r13 is the address of the array, r15 is the counter
+    ; Add the current value to the total
+    addsd   xmm8, [r14+8*r13]
+    ;Increment the couter and jump to the next iteration
+    inc     r13
+    jmp     begin_loop
 
-    inc r15             ; Move to the next element
-    jmp sum_loop
+calculate_mean:
 
-    
-    ; ; Calculate the mean
-    ; movq xmm11, r14
-    ; divsd xmm10, xmm11
-    ; movsd [rsp], xmm10
+    ; Calculate the mean
+    cvtsi2sd xmm12, r15
+    divsd xmm8, xmm12
 
-    ;move xmm10 to a printable register using printf
-    
+done:
+    ; Move the calculated sum to xmm0
+    movsd   xmm0, xmm8
 
-    movsd [rsp], xmm10
-
-
-    ; ; Display sum for debugging purposes
-    ; mov rax, 1
-    ; mov rdi, floatform
-    ; mov rsi, [rsp]
-    ; call printf
-
-exit:
-; Restoring the original value to the GPRs (jmp exit to exit this .asm file)
-
-;State component restore
-    mov rax, 7
-    mov rdx, 0
-    xrstor [backup]
-
-    movsd xmm0, [rsp]
-    pop rax
-
+    ; Restoring the original value to the GPRs
     popf
-    pop        r15
-    pop        r14
-    pop        r13
-    pop        r12
-    pop        r11
-    pop        r10
-    pop        r9
-    pop        r8
-    pop        rdi
-    pop        rsi
-    pop        rdx
-    pop        rcx
-    pop        rbx
-    pop        rbp
+    pop     r15
+    pop     r14
+    pop     r13
+    pop     r12
+    pop     r11
+    pop     r10
+    pop     r9
+    pop     r8
+    pop     rdi
+    pop     rsi
+    pop     rdx
+    pop     rcx
+    pop     rbx
+    pop     rbp
 
     ret
