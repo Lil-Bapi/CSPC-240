@@ -12,10 +12,10 @@ extern scanf
 extern input_array
 extern display_array
 extern output_array
-extern sum_array
+extern commute_mean
 extern compute_variance
 extern isfloat
-global manage
+global manager
 
 array_s equ 100
 
@@ -40,7 +40,7 @@ segment .bss
     count_value resq 1
 segment .text
 
-manage:
+manager:
     ;backup registers
     push rbp                                              
     mov rbp, rsp                                         
@@ -87,6 +87,7 @@ manage:
     mov qword rax, 0
     call input_array                     ; Calls funtion input_array.
     mov [count_value], rax               ; Saves copy of input_array output into r14.
+    mov r15, rax                         ; Saves copy of input_array output into r15.
 
     ; Print outputting_array
     mov qword rdi, stringFormat                     
@@ -95,16 +96,16 @@ manage:
     call printf                             
 
     ; Print display_array
-    mov qword rdi, array
-    mov qword rsi, [count_value]
     mov qword rax, 0
+    mov qword rdi, array
+    mov qword rsi, r15
     call output_array
 
     ; Calls function sum to return the sum of integers in the array
     mov  rax, 0
     mov  rdi, array
     mov  rsi, [count_value]
-    call sum_array
+    call commute_mean
     
     ; Move the result to a safe register (xmm15)
     movsd xmm15, xmm0

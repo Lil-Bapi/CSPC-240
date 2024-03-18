@@ -1,92 +1,115 @@
-; Author name: Andy Nguyen
-; Author email: andynguyendo@csu.fullerton.edu
-
+global input_array
 extern scanf
 extern printf
-global input_array
+extern isfloat
+extern atof
 
 segment .data
-    floatform db "%lf", 0
-    string_format db "%s", 0
+    format_string db "%s", 0
+    invalid_msg db "The last input was invalid and not entered into the array.", 10, 0
+
+segment .bss
+    align 64
+    storedata resb 832
 
 segment .text
-
 input_array:
-    ; Back up all the GPRs
-    push rbp
-    mov rbp, rsp
-    push rbx
-    push rcx
-    push rdx
-    push rsi
-    push rdi
-    push r8
-    push r9
-    push r10
-    push r11
-    push r12
-    push r13
-    push r14
-    push r15
+    ; Back up GPRs
+    push    rbp
+    mov     rbp, rsp
+    push    rbx
+    push    rcx
+    push    rdx
+    push    rsi
+    push    rdi
+    push    r8 
+    push    r9 
+    push    r10
+    push    r11
+    push    r12
+    push    r13
+    push    r14
+    push    r15
     pushf
 
-    pop rax
+    ; Save all the floating-point numbers
+    mov     rax, 7
+    mov     rdx, 0
+    xsave   [storedata]
 
-    mov r14, rdi    ; r14 is the array
-    mov r15, rsi    ; r15 is the upper-limit of the number of cells in the array
-    xor r13, r13    ; r13 to count input
-    jmp input_loop
+    mov     r13, rdi    ; r13 contains the array
+    mov     r14, rsi    ; r14 contains the max size
+    mov     r15, 0      ; r15 is the index of the loop
+    sub     rsp, 1024   ; Create a 1024 bits temporary space on the stack
 
-    ; A loop that will keep asking for more floating-point numbers until
-    ; the user presses ctrl-d
-input_loop:
-    ; if the current index is greater than or equal to 
-    ; the upper-limit, conclude the loop.
-    cmp r13, r15
-    jge input_finished
+begin:
+    mov     rax, 0
+    mov     rdi, format_string
+    mov     rsi, rsp
+    call    scanf
 
-    ; Read a floating point number from user
-    mov rax, 0
-    mov rdi, floatform
-    push qword  0
-    mov rsi, rsp
-    call scanf       ; either a float number or ctrl-d
-
+    ; Check if the input is a Ctrl-D
     cdqe
-    cmp rax, -1
-    je input_finished
+    cmp     rax, -1
+    je      exit
 
-    pop rax
-    ; r14 is the address of the array. r13 is like the "index"
-    ; of the array. By multiplying r13 * 8, we move 8 bytes to the
-    ; next iteration to input more numbers.
-    mov [r14 + r13*8], rax
-    inc r13
+    ; Check if the input is a float
+    mov     rax, 0
+    mov     rdi, rsp
+    call    isfloat
+    cmp     rax, 0
+    je      invalid_input
 
-    cmp r13, r15
-    je input_finished
+    ; Convert the input into a float
+    mov     rax, 0
+    mov     rdi, rsp
+    call    atof
 
-    jmp input_loop
+    ; Copy the float into the array
+    movsd   [r13 + r15 * 8], xmm0
 
-input_finished:
-    ; r13 holds the count of numbers in the array.
-    ; Move it to rax as we are required to return that number.
-    mov rax, r13
+    ; Increase r15, repeat the loop if r15 is less than the max size
+    inc     r15
+    cmp     r15, r14
+    jl      begin
 
-    popf                                                 
-    pop rbx                                                     
-    pop r15                                                     
-    pop r14                                                      
-    pop r13                                                      
-    pop r12                                                      
-    pop r11                                                     
-    pop r10                                                     
-    pop r9                                                      
-    pop r8                                                      
-    pop rcx                                                     
-    pop rdx                                                     
-    pop rsi                                                     
-    pop rdi                                                     
-    pop rbp
+    ; Jump to exit otherwise
+    jmp     exit      
+
+invalid_input:
+    ; Prompt the user to try again and repeat the loop
+    mov     rax, 0
+    mov     rdi, invalid_msg
+    call    printf
+    jmp     begin
+
+exit:
+    ; Get rid of the 1024 bits temporary space on the stack
+    add     rsp, 1024
+
+    ; Restore all the floating-point numbers
+    mov     rax, 7
+    mov     rdx, 0
+    xrstor  [storedata]
+
+    mov     rax, r15
+
+    ;Restore the original values to the GPRs
+    popf          
+    pop     r15
+    pop     r14
+    pop     r13
+    pop     r12
+    pop     r11
+    pop     r10
+    pop     r9 
+    pop     r8 
+    pop     rdi
+    pop     rsi
+    pop     rdx
+    pop     rcx
+    pop     rbx
+    pop     rbp
 
     ret
+

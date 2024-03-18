@@ -1,10 +1,10 @@
-global sum_array
+global commute_mean
 
 segment .data
 
 segment .text
 
-sum_array:
+commute_mean:
     ; Back up all the GPRs
     push    rbp
     mov     rbp, rsp
