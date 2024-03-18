@@ -1,0 +1,76 @@
+     1                                  ; Author name: Andy Nguyen
+     2                                  ; Author email: andynguyendo@csu.fullerton.edu
+     3                                  
+     4                                  extern printf
+     5                                  global output_array
+     6                                  
+     7                                  segment .data
+     8 00000000 256C660A00                  format db "%lf", 10, 0     ; Format string for printing 64-bit integers with a newline
+     9                                  
+    10                                  segment .bss
+    11                                  
+    12                                  segment .text
+    13                                  
+    14                                  output_array:
+    15                                      ; Back up all the GPRs
+    16 00000000 55                          push rbp
+    17 00000001 4889E5                      mov rbp, rsp
+    18 00000004 57                          push rdi
+    19 00000005 56                          push rsi
+    20 00000006 52                          push rdx
+    21 00000007 51                          push rcx
+    22 00000008 4150                        push r8
+    23 0000000A 4151                        push r9
+    24 0000000C 4152                        push r10
+    25 0000000E 4153                        push r11
+    26 00000010 4154                        push r12
+    27 00000012 4155                        push r13
+    28 00000014 4156                        push r14
+    29 00000016 4157                        push r15
+    30 00000018 53                          push rbx
+    31 00000019 9C                          pushf
+    32                                  
+    33                                      ; Call your print_array function, passing the address of the array and its size
+    34 0000001A 4989FE                      mov r14, rdi    ;r14 is the array
+    35 0000001D 4989F7                      mov r15, rsi    ;r15 is the number of cells in the array
+    36                                  
+    37                                      ; Loop counter
+    38 00000020 4D31ED                      xor r13, r13
+    39                                  
+    40                                  print_loop:
+    41                                      ; Check if we've reached the end of the array (loop counter == array size)
+    42 00000023 4D39FD                      cmp r13, r15
+    43 00000026 741F                        je print_done
+    44                                  
+    45                                      ; r14 is the address of the array. r13 is like the "index"
+    46                                      ; of the array. By multiplying r13 * 8, we move 8 bytes to the
+    47                                      ; next iteration to input more numbers.
+    48 00000028 F2430F1004EE                movsd xmm0, [r14 + r13*8]
+    49 0000002E B801000000                  mov rax, 1
+    50 00000033 48BF-                       mov rdi, format
+    50 00000035 [0000000000000000] 
+    51 0000003D E8(00000000)                call printf
+    52                                  
+    53 00000042 49FFC5                      inc r13 ;r13++
+    54                                  
+    55 00000045 EBDC                        jmp print_loop
+    56                                  
+    57                                  print_done:
+    58                                      ; Restoring the original value to the GPRs
+    59 00000047 9D                          popf
+    60 00000048 415F                        pop  r15
+    61 0000004A 415E                        pop  r14
+    62 0000004C 415D                        pop  r13
+    63 0000004E 415C                        pop  r12
+    64 00000050 415B                        pop  r11
+    65 00000052 415A                        pop  r10
+    66 00000054 4159                        pop  r9
+    67 00000056 4158                        pop  r8
+    68 00000058 5E                          pop  rsi
+    69 00000059 5F                          pop  rdi
+    70 0000005A 5A                          pop  rdx
+    71 0000005B 59                          pop  rcx
+    72 0000005C 5B                          pop  rbx
+    73 0000005D 5D                          pop  rbp
+    74                                      
+    75 0000005E C3                          ret
