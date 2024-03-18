@@ -17,7 +17,7 @@ extern compute_variance
 extern isfloat
 global manage
 
-array_s equ 8
+array_s equ 100
 
 segment .data
     floatform db "%lf", 0
@@ -30,14 +30,14 @@ segment .data
     outputting_array db 10, "These numbers were received and placed into an array",10, 0
 
     mean_message db 10, "The mean of the numbers in the array is %1.6lf", 10, 0 
-    variance_message db "The variance of the inputted numbers is ", 0
+    
 
     array_size db 8, 0
 
 segment .bss
     align 16
     array resq array_s
-
+    count_value resq 1
 segment .text
 
 manage:
@@ -85,8 +85,8 @@ manage:
     mov qword rdi, array                 ; Passes array into rdi register. (first argment)
     mov qword rsi, array_size            ; Passes the max array size into rsi register. (second argument)
     mov qword rax, 0
-    call input_array                        ; Calls funtion input_array.
-    mov r14, rax                            ; Saves copy of input_array output into r14.
+    call input_array                     ; Calls funtion input_array.
+    mov [count_value], rax               ; Saves copy of input_array output into r14.
 
     ; Print outputting_array
     mov qword rdi, stringFormat                     
@@ -96,14 +96,14 @@ manage:
 
     ; Print display_array
     mov qword rdi, array
-    mov qword rsi, r14
+    mov qword rsi, [count_value]
     mov qword rax, 0
     call output_array
 
     ; Calls function sum to return the sum of integers in the array
-    mov qword rax, 0
-    mov qword rdi, array
-    mov qword rsi, r13
+    mov  rax, 0
+    mov  rdi, array
+    mov  rsi, [count_value]
     call sum_array
     
     ; Move the result to a safe register (xmm15)
@@ -117,15 +117,12 @@ manage:
     ; Calls function to calculate the variance 
     mov rax, 0
     mov rdi, array          ; Pass array as the first argument
-    mov rsi, r14            ; Pass count as the second argument
+    mov rsi, [count_value]  ; Pass count as the second argument
     movsd xmm0, xmm15       ; Pass mean as the third argument
     call compute_variance   ; Call the function
     movsd xmm11, xmm0       ; Move the result to a safe register (xmm15)
 
-    ; Print the variance
-    mov rax, 1
-    mov rdi, variance_message
-    call printf
+
 
     jmp exit
 
