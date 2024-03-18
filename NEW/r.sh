@@ -34,3 +34,7 @@ echo "Run the program Basic Float Operations"
 ./array.out
 
 echo "The bash script file is now closing."
+
+rm *.o
+rm *.out
+rm *.lis

@@ -109,22 +109,29 @@ manage:
     ; Move the result to a safe register (xmm15)
     movsd xmm15, xmm0
 
+
     mov rax, 1
     mov rdi, mean_message
     call printf
-
+    
     ; Calls function to calculate the variance 
+    mov rax, 0
     mov rdi, array          ; Pass array as the first argument
     mov rsi, r14            ; Pass count as the second argument
     movsd xmm0, xmm15       ; Pass mean as the third argument
     call compute_variance   ; Call the function
-    
+    movsd xmm11, xmm0       ; Move the result to a safe register (xmm15)
+
+    ; Print the variance
+    mov rax, 1
+    mov rdi, variance_message
+    call printf
+
     jmp exit
 
 exit:
 
-    movsd xmm0, xmm15
-    mov rax, r13    ; We need to move the value of r13 to rax because r13 will be restored
+    movsd xmm0, xmm11
 
     ; Restoring the original value to the General Purpose Registers
     popf
@@ -142,9 +149,5 @@ exit:
     pop     rcx
     pop     rbx
     pop     rbp
-
-    ; makes the value of the parameter to the number of user inputs
-    mov qword [rdi], rax
-    mov rax, array      ; Return the array to the C module
 
     ret
