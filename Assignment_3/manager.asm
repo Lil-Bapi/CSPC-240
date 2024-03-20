@@ -1,171 +1,162 @@
-; program name: Amazing Triangle a program that inputs the lengths of two sides 
-; of a triangle and inputs the size of the angle between those two sides.   The 
-; length of the third side is computed.  The three input values are validated by 
-; suitable checking mechanism. 
+; Program name: Array Manager a program that takes in the user's inputs of
+; numbers. The inputed values within the array then are displayed and the mean
+; is calculated which is also will be displayed.
 ; Copyright (C) <2024>  <Quan Khong>
 
-; "Amazing Triangle" is free software: you can redistribute it and/or modify
+; "Array Manager" is free software: you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
 ; the Free Software Foundation, either version 3 of the License, or
 ; (at your option) any later version.
 
-; "Amazing Triangle" is distributed in the hope that it will be useful,
+; "Array Manager" is distributed in the hope that it will be useful,
 ; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ; GNU General Public License for more details.
 
 ; You should have received a copy of the GNU General Public License
-; along with "Amazing Triangle".  If not, see <https://www.gnu.org/licenses/>.
+; along with "Array Manager".  If not, see <https://www.gnu.org/licenses/>.
 
 ; Author: Quan Khong
-; Date: 02/22/2024
-
-
-array_size equ 100
-
-extern printf       
-extern scanf 
-extern fgets
-extern stdin
-extern strlen
-extern isfloat
-extern atof
+; Date: 03/17/2024
+extern printf
+extern scanf
 extern input_array
+extern display_array
 extern output_array
-extern compute_mean
+extern commute_mean
+extern compute_variance
+extern isfloat
 global manager
 
+array_s equ 100
+
 segment .data
-    string_format   db "%s", 0
-    format_float   db "%lf", 0
+    floatform db "%lf", 0
+    stringFormat db "%s", 0
+    
     message1 db "This program will manage your arrays of 64-bit floats", 10, 0
     message2 db "For the array enter a sequence of 64-bit floats separated by white space.", 10, 0
     message3 db "After the last input press enter followed by Control+D:", 10, 0
 
     outputting_array db 10, "These numbers were received and placed into an array",10, 0
 
-    mean_message db 10, "The variance of the inputted numbers is %1.18lf", 10, 0 
+    mean_message db 10, "The mean of the numbers in the array is %1.6lf", 10, 0 
+    
 
-    array_max db 100, 0
+    array_size db 8, 0
 
 segment .bss
-    align 64
-    backup resb 900
-    max_buffer_size equ 64
-    array resq array_size
-
+    align 16
+    array resq array_s
+    count_value resq 1
 segment .text
 
 manager:
-; Back up all the GPRs
-    push    rbp
-    mov     rbp, rsp
-    push    rbx
-    push    rcx
-    push    rdx
-    push    rsi
-    push    rdi
-    push    r8
-    push    r9
-    push    r10
-    push    r11
-    push    r12
-    push    r13
-    push    r14
-    push    r15
-    pushf
+    ;backup registers
+    push rbp                                              
+    mov rbp, rsp                                         
+    push rbx                                              
+    push rcx                                              
+    push rdx                                              
+    push rsi                                              
+    push rdi                                              
+    push r8                                               
+    push r9                                               
+    push r10                                              
+    push r11                                              
+    push r12                                              
+    push r13                                              
+    push r14                                              
+    push r15                                              
+    pushf 
 
-    mov rax, 7
-    mov rdi, 0
-    xsave [backup]
+    ; Initialize Parameters
+    mov qword r14, 0                        ; Reserve register for number of elements in array.
+    mov qword r13, 0                        ; Reserve register for Sum of integers in array
 
-; Initialize Parameters
-    mov qword r14, 0
-    mov qword r13, 0
-
-; Print message1
-    mov qword   rax, 0
-    mov         rdi, string_format
-    mov         rsi, message1
-    call        printf 
-
-; Print message2
-    mov qword   rax, 0
-    mov         rdi, string_format
-    mov         rsi, message2
-    call        printf 
-
-; Print message3
-    mov qword   rax, 0
-    mov         rdi, string_format
-    mov         rsi, message3
-    call        printf 
-
-; Input the array using the external assembly function from module input_array.asm
+    ; Instructional Promps
+    mov qword rdi, stringFormat                     
+    mov qword rsi, message1              
     mov qword rax, 0
-    mov rdi, array
-    mov rsi, array_max
-    call input_array
-    mov r13, rax
+    call printf                             ; Prints out intructions prompt.
 
-; Print array message
+    ; Instructional Promps
+    mov qword rdi, stringFormat                     
+    mov qword rsi, message2              
     mov qword rax, 0
-    mov rsi, string_format
-    mov rdi, outputting_array
-    call printf
+    call printf        
 
-; Print the elements of the array using the external assembly function from module output_array.asm
+    ; Instructional Promps
+    mov qword rdi, stringFormat                     
+    mov qword rsi, message3              
     mov qword rax, 0
-    mov rdi, array
-    mov rsi, r13
+    call printf            
+
+    ; Call input_array
+    mov qword rdi, array                 ; Passes array into rdi register. (first argment)
+    mov qword rsi, array_size            ; Passes the max array size into rsi register. (second argument)
+    mov qword rax, 0
+    call input_array                     ; Calls funtion input_array.
+    mov [count_value], rax               ; Saves copy of input_array output into r14.
+    mov r15, rax                         ; Saves copy of input_array output into r15.
+
+    ; Print outputting_array
+    mov qword rdi, stringFormat                     
+    mov qword rsi, outputting_array              
+    mov qword rax, 0
+    call printf                             
+
+    ; Print display_array
+    mov qword rax, 0
+    mov qword rdi, array
+    mov qword rsi, r15
     call output_array
 
-; Calculate the mean of the array
-    mov qword rax, 0
-    mov rdi, array
-    mov rsi, r13
-    call compute_mean
+    ; Calls function sum to return the sum of integers in the array
+    mov  rax, 0
+    mov  rdi, array
+    mov  rsi, [count_value]
+    call commute_mean
     
-; move the result to a safe register
-    movsd xmm9, xmm0
+    ; Move the result to a safe register (xmm15)
+    movsd xmm15, xmm0
 
-; Print the mean
+
     mov rax, 1
     mov rdi, mean_message
-    movsd xmm0, xmm9
     call printf
-
-jmp exit
     
+    ; Calls function to calculate the variance 
+    mov rax, 0
+    mov rdi, array          ; Pass array as the first argument
+    mov rsi, [count_value]  ; Pass count as the second argument
+    movsd xmm0, xmm15       ; Pass mean as the third argument
+    call compute_variance   ; Call the function
+    movsd xmm11, xmm0       ; Move the result to a safe register (xmm15)
+
+
+
+    jmp exit
 
 exit:
-; Restoring the original value to the GPRs (jmp exit to exit this .asm file)
 
-    push qword 0
-    movsd [rsp], xmm9
+    movsd xmm0, xmm11
 
-    ;State component restore
-    mov rax, 7
-    mov rdx, 0
-    xrstor [backup]
-
-    movsd xmm0, [rsp]
-    pop rax
-
+    ; Restoring the original value to the General Purpose Registers
     popf
-    pop        r15
-    pop        r14
-    pop        r13
-    pop        r12
-    pop        r11
-    pop        r10
-    pop        r9
-    pop        r8
-    pop        rdi
-    pop        rsi
-    pop        rdx
-    pop        rcx
-    pop        rbx
-    pop        rbp
+    pop     r15
+    pop     r14
+    pop     r13
+    pop     r12
+    pop     r11
+    pop     r10
+    pop     r9
+    pop     r8
+    pop     rdi
+    pop     rsi
+    pop     rdx
+    pop     rcx
+    pop     rbx
+    pop     rbp
 
     ret
