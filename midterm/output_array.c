@@ -1,4 +1,7 @@
-
+// Author name: Quan Khong
+// Author email: kquan59@csu.fullerton.edu
+// Course and section:  CPSC240-3
+// Today’s date: Mar 20, 2024
 
 
 #include <stdio.h>
