@@ -1,3 +1,8 @@
+# Author: Quan Khong
+# Email: kquan59@csu.fullerton.edu
+# The class number: CPSC240-9
+# Date: 05/13/2024
+
 rm *.o
 rm *.out
 rm *.lis
